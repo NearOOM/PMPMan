@@ -1,12 +1,12 @@
 # Introduction
 PMPMan is a simple Pumpkin Minecraft Server Pterodactyl-like manager
 
-This Project is focused on Pumpkin Server only and did not guarantee it's running normally with a different server binary
+This Project is focused on Pumpkin Server only and did not guarantee it runs normally with a different server binary.
 
 Pumpkin Repository:
 https://github.com/Pumpkin-MC/Pumpkin
 
-## NOTE: This Project is still on heavy development and still contains bug.
+### NOTE: This Project is still on heavy development and still contains bug.
 
 # How To Use
 1. Clone this repository:
@@ -35,22 +35,22 @@ node main.js
 - [x] Playit
 - [x] Other Minecraft Server Builds(Paper, Vanilla, etc.)
 
+# Suggestions
+Just send them in the issues.
+
+format:
+- idea
+- does it possible?
+- is it difficult to make?
+
+Difficult suggestions are not guaranteed to be carried out completely or even not carried out at all
+
 # Contribute
 Feel free to contribute😁..
 and i didn't have any rules on contribute yet so...
 
 # License
 GPLv3
-
-## Suggestions
-Just send them in the issues.
-
-format:
-- idea
-- does it possible?
-- is it hard to create?
-
-Difficult suggestions are not guaranteed to be carried out completely or even not carried out at all
 
 
 ### apology
