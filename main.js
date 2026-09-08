@@ -1,16 +1,62 @@
 // Made By NearOOM
 
+// Modules (DO NOT CHANGE)
 const express = require("express");
 const path = require("path");
 const { spawn } = require("child_process");
 const WebSocket = require("ws");
 const http = require("http");
+const playit = require("./lib/playit")
+const fs = require("fs");
+const TOML = require("smol-toml");
 
 // Config <needs change>
-const port = 3000;
-const host = "0.0.0.0";
-const apiVer = "1";
-const pumpkinBin = "pumpkin";
+// Config
+const CONFIG_PATH = path.join(__dirname, "config.toml");
+
+const DEFAULT_CONFIG = {
+    server: {
+        port: 3000,
+        host: "0.0.0.0",
+        apiVer: "1"
+    },
+    pumpkin: {
+        bin: "pumpkin"
+    },
+    playit: {
+        enabled: false
+    }
+};
+
+function loadConfig() {
+    if (!fs.existsSync(CONFIG_PATH)) {
+        console.warn(`[!] config.toml not found at ${CONFIG_PATH}, using defaults.`);
+        return DEFAULT_CONFIG;
+    }
+
+    try {
+        const raw = fs.readFileSync(CONFIG_PATH, "utf-8");
+        const parsed = TOML.parse(raw);
+
+        return {
+            server: { ...DEFAULT_CONFIG.server, ...(parsed.server || {}) },
+            pumpkin: { ...DEFAULT_CONFIG.pumpkin, ...(parsed.pumpkin || {}) },
+            playit: { ...DEFAULT_CONFIG.playit, ...(parsed.playit || {}) }
+        };
+    } catch (err) {
+        console.error(`[-] Failed to parse config.toml: ${err.message}`);
+        console.warn("[!] Falling back to default config.");
+        return DEFAULT_CONFIG;
+    }
+}
+
+const config = loadConfig();
+
+const port = config.server.port;
+const host = config.server.host;
+const apiVer = config.server.apiVer;
+const pumpkinBin = config.pumpkin.bin;
+const isPlayit = config.playit.enabled;
 
 // DO NOT CHANGE
 const app = express();
@@ -178,4 +224,28 @@ app.post(`/v${apiVer}/sendCommand`, (req, res) => {
 // Main
 httpServer.listen(port, host, () => {
     console.log(`PMPMan is running on ${host}:${port}`);
+    start();
+    if (isPlayit) {
+        const playitEvents = playit.start();
+
+        playitEvents.on("claim", url => {
+            console.log(`Playit claim URL: ${url}`);
+        });
+
+        playitEvents.on("ready", () => {
+            console.log("Playit tunnel ready");
+        });
+
+        playitEvents.on("stderr", text => {
+            console.error(`[playit] ${text}`);
+        });
+
+        playitEvents.on("error", err => {
+            console.error("Playit failed to start:", err.message);
+        });
+
+        playitEvents.on("exit", (code, signal) => {
+            console.log(`Playit exited (code=${code}, signal=${signal})`);
+        });
+    }
 });
