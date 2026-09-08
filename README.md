@@ -27,13 +27,13 @@ node main.js
 ```
 
 # Progress
-Main:
-[x] Backend(sendCommand)
-[] Web UI(not entirely made by hand)
+### Main:
+- [x] Backend(sendCommand)
+- [ ] Web UI(not entirely made by hand)
 
-Integration:
-[x] Playit
-[] Other Minecraft Server Builds(Paper, Vanilla, etc.)
+### Integration:
+- [x] Playit
+- [x] Other Minecraft Server Builds(Paper, Vanilla, etc.)
 
 # Contribute
 Feel free to contribute😁..
