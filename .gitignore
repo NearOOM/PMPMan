@@ -56,4 +56,4 @@ Thumbs.db
 *.zip
 
 # Pumpkin container
-pumpkin/
+pumpkin_data/

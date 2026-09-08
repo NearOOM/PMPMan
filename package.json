@@ -1,24 +1,31 @@
 {
   "name": "pmpman",
   "version": "0.1.0",
-  "description": "A Pumpkin manager made with expressjs",
+  "description": "A simple Pumpkin Minecraft Server Pterodactyl-like manager made with expressjs",
   "keywords": [
     "PMPMan",
     "pmpman"
   ],
   "repository": {
     "type": "git",
-    "url": "not yet"
+    "url": "https://github.com/NearOOM/PMPMan.git"
   },
   "license": "GPL-3.0-or-later",
   "author": "NearOOM",
   "type": "commonjs",
   "main": "main.js",
   "scripts": {
+    "start": "node main.js",
+    "build": "esbuild public/js/script.js --bundle --outfile=public/bundles/bundle.js",
     "test": "echo \"no test command\""
   },
   "dependencies": {
+    "@xterm/xterm": "^6.0.0",
     "express": "^5.2.1",
-    "path": "^0.12.7"
+    "path": "^0.12.7",
+    "ws": "^8.21.3"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2"
   }
 }

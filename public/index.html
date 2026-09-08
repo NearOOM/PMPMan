@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>PMPMan</title>
+
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/bundles/bundle.css">
+</head>
+
+<body>
+
+    <main class="container">
+
+        <header class="header">
+            <div>
+                <h1>PMPMan</h1>
+                <p>Pumpkin Minecraft Server Manager</p>
+            </div>
+
+            <span id="status" class="status offline">
+                Offline
+            </span>
+        </header>
+
+
+        <section class="terminal-container">
+            <div id="terminal"></div>
+        </section>
+
+
+        <section class="controls">
+
+            <button id="startBtn">
+                Start
+            </button>
+
+            <button id="stopBtn">
+                Stop
+            </button>
+
+            <button id="restartBtn">
+                Restart
+            </button>
+
+        </section>
+
+
+        <form id="commandForm" class="command-form">
+
+            <input
+                id="commandInput"
+                type="text"
+                placeholder="Enter Minecraft command..."
+                autocomplete="off"
+            >
+
+            <button type="submit">
+                Send
+            </button>
+
+        </form>
+
+    </main>
+
+
+    <script src="/bundles/bundle.js"></script>
+
+</body>
+</html>

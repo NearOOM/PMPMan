@@ -1,0 +1,112 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background: #111;
+    color: #fff;
+    font-family: Arial, sans-serif;
+}
+
+.container {
+    width: 100%;
+    max-width: 1100px;
+    margin: auto;
+    padding: 20px;
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.header h1 {
+    margin: 0;
+}
+
+.header p {
+    margin: 5px 0 0;
+    color: #aaa;
+}
+
+.status {
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.status.online {
+    background: #164d25;
+    color: #6cff8b;
+}
+
+.status.offline {
+    background: #4d1616;
+    color: #ff7777;
+}
+
+.terminal-container {
+    height: 500px;
+
+    background: #000;
+    border: 1px solid #333;
+    border-radius: 8px;
+
+    overflow: hidden;
+}
+
+#terminal {
+    width: 100%;
+    height: 100%;
+}
+
+.controls {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+button {
+    border: 0;
+    border-radius: 6px;
+
+    padding: 10px 16px;
+
+    background: #292929;
+    color: white;
+
+    cursor: pointer;
+}
+
+button:hover {
+    background: #3a3a3a;
+}
+
+.command-form {
+    display: flex;
+    gap: 10px;
+
+    margin-top: 15px;
+}
+
+.command-form input {
+    flex: 1;
+    min-width: 0;
+
+    padding: 10px;
+
+    border: 1px solid #333;
+    border-radius: 6px;
+
+    outline: none;
+
+    background: #1b1b1b;
+    color: white;
+}
+
+.command-form input:focus {
+    border-color: #666;
+}
