@@ -33,7 +33,7 @@ node main.js
 
 ### Integration:
 - [x] Playit
-- [x] Other Minecraft Server Builds(Paper, Vanilla, etc.)
+- [ ] Other Minecraft Server Builds(Paper, Vanilla, etc.)
 
 # Suggestions
 Just send them in the issues.
