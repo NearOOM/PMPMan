@@ -1,0 +1,24 @@
+{
+  "name": "pmpman",
+  "version": "0.1.0",
+  "description": "A Pumpkin manager made with expressjs",
+  "keywords": [
+    "PMPMan",
+    "pmpman"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "not yet"
+  },
+  "license": "GPL-3.0-or-later",
+  "author": "NearOOM",
+  "type": "commonjs",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"no test command\""
+  },
+  "dependencies": {
+    "express": "^5.2.1",
+    "path": "^0.12.7"
+  }
+}
