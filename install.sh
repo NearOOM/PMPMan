@@ -111,6 +111,9 @@ fi
 echo "[+] Installing modules..."
 npm install > /dev/null 2>&1
 
+echo "[+] Building Bundle.js..."
+npm run build > /dev/null 2>&1
+
 echo "[+] Installing Pumpkin Binary..."
 echo "[-] Detected: ${OS} / ${ARCH}"
 echo "[-] Downloading ${ASSET}..."
