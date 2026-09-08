@@ -10,7 +10,6 @@ const playit = require("./lib/playit")
 const fs = require("fs");
 const TOML = require("smol-toml");
 
-// Config <needs change>
 // Config
 const CONFIG_PATH = path.join(__dirname, "config.toml");
 
@@ -72,7 +71,6 @@ app.use(express.json());
 
 
 // WebSocket connection event
-
 function handleConnection(ws) {
     ws.send("[PMPMan] Connected to log stream");
 
