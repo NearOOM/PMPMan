@@ -26,6 +26,15 @@ or
 node main.js
 ```
 
+# Progress
+Main:
+[x] Backend(sendCommand)
+[] Web UI(not entirely made by hand)
+
+Integration:
+[x] Playit
+[] Other Minecraft Server Builds(Paper, Vanilla, etc.)
+
 # Contribute
 Feel free to contribute😁..
 and i didn't have any rules on contribute yet so...
@@ -33,5 +42,14 @@ and i didn't have any rules on contribute yet so...
 # License
 GPLv3
 
+## Suggestions
+Just send them in the issues.
 
-### Sorry for bad README writing cuz im new on github and im trying my best😅..
+format:
+- idea
+- does it possible?
+- is it hard to create?
+
+Difficult suggestions are not guaranteed to be carried out completely or even not carried out at all
+
+ Sorry for bad README writing cuz im new on github and im trying my best😅..
