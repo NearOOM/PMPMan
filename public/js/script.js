@@ -251,10 +251,63 @@ async function sendCommand(command, input = null) {
     return data;
 }
 
+// STATUS
+async function getStatus() {
+    const response = await fetch("/v1/status", {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+    });
+
+    let data;
+    try {
+        data = await response.json();
+    } catch {
+        throw new Error("Invalid server response");
+    }
+
+    if (!response.ok) {
+        throw new Error(data.error || "Request failed");
+    }
+    return data;
+};
+
+async function refreshStatus() {
+    try {
+        const res = await getStatus();
+        setStatus(res.online);
+        return res.online;
+    } catch (error) {
+        term.writeln(`\r\n[PMPMan] ${error.message}`);
+        return null;
+    }
+}
+
+async function waitForStatus(expected, timeout = 10000) {
+    const startTime = Date.now();
+
+    while (Date.now() - startTime < timeout) {
+        const online = await refreshStatus();
+
+        if (online === expected) {
+            return true;
+        }
+
+        await new Promise(resolve => setTimeout(resolve, 200));
+    }
+
+    return false;
+}
+
+refreshStatus();
+
+// Control Buttons
 startBtn.addEventListener("click", async () => {
     try {
-        const res = await sendCommand("start");
-        if (res.success) setStatus(true);
+        await sendCommand("start");
+
+        if (!(await waitForStatus(true))) {
+            term.writeln("\r\n[PMPMan] Server failed to start.");
+        }
     } catch (error) {
         term.writeln(`\r\n[PMPMan] ${error.message}`);
     }
@@ -263,7 +316,10 @@ startBtn.addEventListener("click", async () => {
 stopBtn.addEventListener("click", async () => {
     try {
         await sendCommand("stop");
-        setStatus(false);
+
+        if (!(await waitForStatus(false))) {
+            term.writeln("\r\n[PMPMan] Server is still stopping...");
+        }
     } catch (error) {
         term.writeln(`\r\n[PMPMan] ${error.message}`);
     }
@@ -272,8 +328,12 @@ stopBtn.addEventListener("click", async () => {
 restartBtn.addEventListener("click", async () => {
     try {
         term.clear();
+
         await sendCommand("restart");
-        setStatus(true);
+
+        if (!(await waitForStatus(true))) {
+            term.writeln("\r\n[PMPMan] Server failed to restart.");
+        }
     } catch (error) {
         term.writeln(`\r\n[PMPMan] ${error.message}`);
     }
