@@ -6,12 +6,27 @@ const path = require("path");
 const { spawn } = require("child_process");
 const WebSocket = require("ws");
 const http = require("http");
-const playit = require("./lib/playit")
 const fs = require("fs");
 const TOML = require("smol-toml");
 
-// Config <needs change>
-// Config
+// Builtin libs
+const playit = require("./lib/playit")
+const { monitor } = require('./lib/monitor');
+
+// DO NOT CHANGE
+const logBuffer = [];
+const MAX_BUFFER_LINES = 1000;
+
+
+// Config Processing
+function createConf(name, content) {
+  try {
+    fs.writeFileSync(name, content, 'utf8');
+  } catch (error) {
+      console.log(error);
+  }
+}
+
 const CONFIG_PATH = path.join(__dirname, "config.toml");
 
 const DEFAULT_CONFIG = {
@@ -28,9 +43,23 @@ const DEFAULT_CONFIG = {
     }
 };
 
+const DEFCONF_TOML = `
+[server]
+port = 3000
+host = "0.0.0.0"
+apiVer = "1"
+
+[pumpkin]
+bin = "pumpkin"
+
+[playit]
+enabled = false
+`
+
 function loadConfig() {
     if (!fs.existsSync(CONFIG_PATH)) {
         console.warn(`[!] config.toml not found at ${CONFIG_PATH}, using defaults.`);
+        createConf(CONFIG_PATH, DEFCONF_TOML);
         return DEFAULT_CONFIG;
     }
 
@@ -58,7 +87,7 @@ const apiVer = config.server.apiVer;
 const pumpkinBin = config.pumpkin.bin;
 const isPlayit = config.playit.enabled;
 
-// DO NOT CHANGE
+// Server Config
 const app = express();
 const httpServer = http.createServer(app);
 const wss = new WebSocket.Server({
@@ -66,15 +95,31 @@ const wss = new WebSocket.Server({
 });
 let server = null;
 
-// Express config
+// Express Config
 app.use(express.static(path.join(__dirname, "public")));
 app.use(express.json());
 
 
-// WebSocket connection event
+// Handle WS connections
+setInterval(() => {
+    wss.clients.forEach((client) => {
+        if (client.readyState === WebSocket.OPEN) {
+            client.send(JSON.stringify({ type: "ping" }));
+        }
+    });
+}, 30000);
 
 function handleConnection(ws) {
-    ws.send("[PMPMan] Connected to log stream");
+    ws.send(JSON.stringify({
+        type: "output",
+        data: "[PMPMan] Connected to log stream\r\n"
+    }));
+    if (logBuffer.length > 0) {
+        ws.send(JSON.stringify({
+            type: "output",
+            data: logBuffer.join("")
+        }));
+    }
 
     ws.on("close", () => {
         console.log("Client disconnected");
@@ -83,33 +128,57 @@ function handleConnection(ws) {
 
 wss.on("connection", handleConnection);
 
-function broadcast(data) {
-    wss.clients.forEach((client) => {
+function broadcastOutput(text) {
+    wss.clients.forEach(client => {
         if (client.readyState === WebSocket.OPEN) {
-            client.send(data);
+            client.send(JSON.stringify({ type: "output", data: text }));
+        }
+    });
+}
+
+function broadcastStats(stats) {
+    wss.clients.forEach(client => {
+        if (client.readyState === WebSocket.OPEN) {
+            client.send(JSON.stringify({ type: "stats", data: stats }));
         }
     });
 }
 
 function attachServerListeners() {
     server.stdout.on("data", (data) => {
-        broadcast(data.toString());
+        const text = data.toString();
+        logBuffer.push(text);
+        if (logBuffer.length > MAX_BUFFER_LINES) {
+            logBuffer.shift();
+        }
+
+        broadcastOutput(text);
     });
 
     server.stderr.on("data", (data) => {
-        broadcast(data.toString());
+        const text = data.toString();
+        
+        logBuffer.push(text);
+        if (logBuffer.length > MAX_BUFFER_LINES) {
+            logBuffer.shift();
+        }
+
+        broadcastOutput(text);
     });
 
     server.on("close", (code, signal) => {
-        broadcast(
-            `[PMPMan] Pumpkin exited: code=${code}, signal=${signal}`
-        );
+        const exitText = `[PMPMan] Pumpkin exited: code=${code}, signal=${signal}\r\n`;
+        
+        logBuffer.push(exitText);
+        if (logBuffer.length > MAX_BUFFER_LINES) logBuffer.shift();
 
+        broadcastOutput(exitText);
         server = null;
     });
 }
 
-// Server Command
+
+// Server Commands
 function start() {
     if (server) {
         return false;
@@ -117,7 +186,13 @@ function start() {
 
     server = spawn(`./${pumpkinBin}`, [], {
         cwd: path.join(__dirname, "pumpkin_data"),
-        stdio: ["pipe", "pipe", "pipe"]
+        stdio: ["pipe", "pipe", "pipe"],
+        env: {
+            ...process.env,
+            CLICOLOR_FORCE: "1",
+            FORCE_COLOR: "1",
+            TERM: "xterm-256color"
+        }
     });
 
     attachServerListeners();
@@ -129,26 +204,49 @@ function stop() {
         return false;
     }
 
-    server.kill();
+    let killTimeout = setTimeout(() => {
+        if (server) {
+            console.warn("[PMPMan] Pumpkin did not stop gracefully. Forcing kill...");
+            server.kill("SIGKILL");
+        }
+    }, 5000);
+
+    server.once("close", () => {
+        clearTimeout(killTimeout);
+    });
+
+    server.stdin.write("stop\n");
     return true;
 }
 
 function restart() {
     if (!server) {
+        logBuffer = [];
         start();
         return true;
     }
 
+    let killTimeout = setTimeout(() => {
+        if (server) {
+            console.warn("[PMPMan] Pumpkin did not stop gracefully during restart. Forcing kill...");
+            server.kill("SIGKILL");
+        }
+    }, 5000);
+
     server.once("close", () => {
-        start();
+        clearTimeout(killTimeout);
+        logBuffer = [];
+        setTimeout(() => {
+            start();
+        }, 100);
     });
 
-    server.kill();
+    server.stdin.write("stop\n");
     return true;
 }
 
-// utils
 
+// Utils
 function runCommand(command) {
     if (!server) {
         return false;
@@ -170,6 +268,24 @@ function retError(res, message) {
         error: message
     });
 }
+
+function startMonitoring(intervalMs = 1000) {
+    async function tick() {
+        try {
+            const pid = server ? server.pid : null;
+            const stats = await monitor(pid);
+            broadcastStats(stats);
+        } catch (err) {
+            console.error("[monitor] failed:", err.message);
+        } finally {
+            setTimeout(tick, intervalMs);
+        }
+    }
+
+    tick();
+}
+
+startMonitoring(1000);
 
 // Routes
 app.post(`/v${apiVer}/sendCommand`, (req, res) => {
@@ -221,7 +337,7 @@ app.post(`/v${apiVer}/sendCommand`, (req, res) => {
     }
 });
 
-// Main
+// MAIN
 httpServer.listen(port, host, () => {
     console.log(`PMPMan is running on ${host}:${port}`);
     start();

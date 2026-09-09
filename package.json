@@ -20,9 +20,12 @@
     "test": "echo \"no test command\""
   },
   "dependencies": {
+    "@xterm/addon-fit": "^0.11.0",
     "@xterm/xterm": "^6.0.0",
     "express": "^5.2.1",
+    "node-os-utils": "^3.0.0",
     "path": "^0.12.7",
+    "smol-toml": "^1.8.0",
     "ws": "^8.21.3"
   },
   "devDependencies": {
