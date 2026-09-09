@@ -121,7 +121,7 @@ function handleConnection(ws) {
     }
 
     ws.on("close", () => {
-        console.log("Client disconnected");
+        // ignore
     });
 }
 
@@ -286,7 +286,21 @@ function startMonitoring(intervalMs = 1000) {
 
 startMonitoring(1000);
 
+function getServerStatus() {
+    if (server) {
+        return true;
+    }
+    return false
+};
+
 // Routes
+app.get(`/v${apiVer}/status`, (req, res) => {
+    const serverStatus = getServerStatus();
+    return res.status(200).json({
+        "online": serverStatus
+    });
+});
+
 app.post(`/v${apiVer}/sendCommand`, (req, res) => {
     const command = req.body.command;
 
