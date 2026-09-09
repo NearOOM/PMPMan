@@ -1,112 +1,874 @@
+:root {
+    --bg: #090b0e;
+
+    --surface: #13171c;
+    --surface-hover: #181d23;
+    --surface-inset: #0e1216;
+
+    --border: #252b32;
+    --border-light: #303740;
+
+    --text: #e3e7eb;
+    --text-muted: #7d8791;
+
+    --accent: #3ddc97;
+    --accent-dim: #1f4d3a;
+
+    --danger: #e5484d;
+    --danger-dim: #4d1f21;
+
+    --warn: #e6b450;
+
+    --font-ui:
+        "Inter",
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+
+    --font-mono:
+        "JetBrains Mono",
+        "SFMono-Regular",
+        Consolas,
+        monospace;
+}
+
+
+/* ---------------------------------------------------------
+   Base
+--------------------------------------------------------- */
+
 * {
     box-sizing: border-box;
 }
 
+
+html,
 body {
-    margin: 0;
-    background: #111;
-    color: #fff;
-    font-family: Arial, sans-serif;
-}
-
-.container {
     width: 100%;
-    max-width: 1100px;
-    margin: auto;
-    padding: 20px;
+    min-height: 100%;
+    margin: 0;
 }
 
-.header {
+
+body {
+    background: var(--bg);
+    color: var(--text);
+
+    font-family: var(--font-ui);
+
+    -webkit-font-smoothing: antialiased;
+}
+
+
+/* ---------------------------------------------------------
+   App
+--------------------------------------------------------- */
+
+.app-shell {
+    width: 100%;
+    max-width: 1180px;
+
+    margin: 0 auto;
+
+    padding: 32px 28px 48px;
+}
+
+
+/* ---------------------------------------------------------
+   Header
+--------------------------------------------------------- */
+
+.app-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+
+    gap: 24px;
+
+    margin-bottom: 28px;
+}
+
+
+.app-header-left {
+    min-width: 0;
+}
+
+
+.app-title {
+    margin: 0;
+
+    font-size: 26px;
+    line-height: 1.2;
+
+    font-weight: 600;
+
+    letter-spacing: -0.025em;
+}
+
+
+.app-subtitle {
+    margin: 7px 0 0;
+
+    color: var(--text-muted);
+
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+
+.app-header-right {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+
+    gap: 14px;
+
+    padding-top: 3px;
+}
+
+
+/* ---------------------------------------------------------
+   Status
+--------------------------------------------------------- */
+
+.status-pill {
+    display: inline-flex;
+    align-items: center;
+
+    gap: 8px;
+
+    padding: 7px 12px;
+
+    border-radius: 20px;
+
+    font-size: 12px;
+    font-weight: 500;
+
+    border: 1px solid var(--border);
+}
+
+
+.status-dot {
+    width: 7px;
+    height: 7px;
+
+    border-radius: 50%;
+}
+
+
+.status-online {
+    color: var(--accent);
+
+    background: rgba(61, 220, 151, 0.07);
+
+    border-color: var(--accent-dim);
+}
+
+
+.status-online .status-dot {
+    background: var(--accent);
+
+    box-shadow:
+        0 0 0 3px rgba(61, 220, 151, 0.15);
+}
+
+
+.status-offline {
+    color: var(--danger);
+
+    background: rgba(229, 72, 77, 0.07);
+
+    border-color: var(--danger-dim);
+}
+
+
+.status-offline .status-dot {
+    background: var(--danger);
+
+    box-shadow:
+        0 0 0 3px rgba(229, 72, 77, 0.15);
+}
+
+
+.conn-label {
+    font-family: var(--font-mono);
+
+    font-size: 11px;
+}
+
+
+.conn-connected {
+    color: var(--accent);
+}
+
+
+.conn-disconnected {
+    color: var(--danger);
+}
+
+
+/* ---------------------------------------------------------
+   Resource stats
+--------------------------------------------------------- */
+
+.resource-stats {
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, minmax(0, 1fr));
+
+    gap: 20px;
+
+    padding: 18px 20px;
+
     margin-bottom: 20px;
+
+    background: var(--surface);
+
+    border: 1px solid var(--border);
+
+    border-radius: 12px;
 }
 
-.header h1 {
-    margin: 0;
+
+.stat-block {
+    min-width: 0;
 }
 
-.header p {
-    margin: 5px 0 0;
-    color: #aaa;
+
+.stat-row {
+    display: flex;
+
+    align-items: baseline;
+    justify-content: space-between;
+
+    gap: 12px;
+
+    margin-bottom: 9px;
 }
 
-.status {
-    padding: 6px 12px;
-    border-radius: 6px;
-    font-size: 14px;
+
+.stat-label {
+    color: var(--text-muted);
+
+    font-size: 12px;
+    font-weight: 500;
 }
 
-.status.online {
-    background: #164d25;
-    color: #6cff8b;
+
+.stat-value {
+    color: var(--text);
+
+    font-family: var(--font-mono);
+
+    font-size: 12px;
 }
 
-.status.offline {
-    background: #4d1616;
-    color: #ff7777;
-}
 
-.terminal-container {
-    height: 500px;
+.stat-bar {
+    height: 5px;
 
-    background: #000;
-    border: 1px solid #333;
-    border-radius: 8px;
+    background: var(--surface-inset);
+
+    border-radius: 4px;
 
     overflow: hidden;
 }
 
+
+.stat-bar-fill {
+    width: 0%;
+    height: 100%;
+
+    border-radius: 4px;
+
+    background: var(--accent);
+
+    transition:
+        width 0.4s ease,
+        background 0.3s ease;
+}
+
+
+.stat-bar-fill.stat-warn {
+    background: var(--warn);
+}
+
+
+.stat-bar-fill.stat-danger {
+    background: var(--danger);
+}
+
+
+/* ---------------------------------------------------------
+   Main console layout
+--------------------------------------------------------- */
+
+.console-layout {
+    display: grid;
+
+    grid-template-columns:
+        minmax(0, 1fr)
+        210px;
+
+    gap: 20px;
+
+    min-height: 600px;
+}
+
+
+/* ---------------------------------------------------------
+   Console
+--------------------------------------------------------- */
+
+.console-card {
+    min-width: 0;
+    min-height: 600px;
+
+    display: flex;
+    flex-direction: column;
+
+    overflow: hidden;
+
+    background: var(--surface);
+
+    border: 1px solid var(--border);
+
+    border-radius: 12px;
+}
+
+
+.console-toolbar {
+    display: flex;
+
+    align-items: center;
+    justify-content: space-between;
+
+    flex-shrink: 0;
+
+    padding: 14px 18px;
+
+    border-bottom: 1px solid var(--border);
+}
+
+
+.console-label {
+    color: var(--text-muted);
+
+    font-size: 12px;
+    font-weight: 500;
+}
+
+
+/* ---------------------------------------------------------
+   Terminal
+--------------------------------------------------------- */
+
+.terminal-container {
+    position: relative;
+
+    width: 100%;
+
+    flex: 1;
+
+    min-height: 0;
+
+    padding: 14px 5px 14px 16px;
+
+    background: #000;
+
+    overflow: hidden;
+
+    overscroll-behavior: contain;
+
+    touch-action: none;
+}
+
+
 #terminal {
+    width: 100%;
+    height: 100%;
+
+    min-width: 0;
+    min-height: 0;
+}
+
+
+#terminal .xterm {
     width: 100%;
     height: 100%;
 }
 
-.controls {
-    display: flex;
-    gap: 10px;
-    margin-top: 15px;
+
+#terminal .xterm-viewport {
+    overflow-y: auto !important;
+    overflow-x: auto !important;
+
+    scrollbar-width: thin;
+
+    scrollbar-color:
+        #333941
+        transparent;
 }
 
-button {
-    border: 0;
-    border-radius: 6px;
 
-    padding: 10px 16px;
+#terminal .xterm-viewport::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
 
-    background: #292929;
-    color: white;
+
+#terminal .xterm-viewport::-webkit-scrollbar-thumb {
+    background: #333941;
+
+    border-radius: 4px;
+}
+
+
+#terminal .xterm-viewport::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+
+#terminal .xterm-screen {
+    overflow: visible;
+}
+
+
+/* ---------------------------------------------------------
+   New output
+--------------------------------------------------------- */
+
+.scroll-bottom-btn {
+    position: absolute;
+
+    left: 50%;
+    bottom: 16px;
+
+    transform: translateX(-50%);
+
+    padding: 7px 15px;
+
+    border: 1px solid var(--border-light);
+
+    border-radius: 20px;
+
+    background: var(--surface);
+
+    color: var(--accent);
+
+    font-family: var(--font-ui);
+
+    font-size: 12px;
+    font-weight: 500;
 
     cursor: pointer;
+
+    z-index: 2;
+
+    box-shadow:
+        0 4px 14px rgba(0, 0, 0, 0.45);
 }
 
-button:hover {
-    background: #3a3a3a;
+
+.scroll-bottom-btn:hover {
+    background: var(--surface-hover);
 }
 
-.command-form {
+
+/* ---------------------------------------------------------
+   Command prompt
+--------------------------------------------------------- */
+
+.prompt-row {
     display: flex;
+
+    align-items: center;
+
+    flex-shrink: 0;
+
     gap: 10px;
 
-    margin-top: 15px;
+    padding: 12px 16px;
+
+    background: var(--surface-inset);
+
+    border-top: 1px solid var(--border);
 }
 
-.command-form input {
+
+.prompt-glyph {
+    color: var(--accent);
+
+    font-family: var(--font-mono);
+
+    font-size: 14px;
+    font-weight: 600;
+
+    user-select: none;
+}
+
+
+.prompt-input {
     flex: 1;
+
     min-width: 0;
 
-    padding: 10px;
+    padding: 7px 0;
 
-    border: 1px solid #333;
-    border-radius: 6px;
+    background: transparent;
 
+    border: 0;
     outline: none;
 
-    background: #1b1b1b;
-    color: white;
+    color: var(--text);
+
+    font-family: var(--font-mono);
+
+    font-size: 13px;
 }
 
-.command-form input:focus {
-    border-color: #666;
+
+.prompt-input::placeholder {
+    color: var(--text-muted);
+}
+
+
+.prompt-send {
+    padding: 7px 15px;
+
+    border: 1px solid var(--border);
+
+    border-radius: 7px;
+
+    background: var(--surface);
+
+    color: var(--text);
+
+    font-size: 12px;
+    font-weight: 500;
+
+    cursor: pointer;
+
+    transition:
+        background 0.12s ease,
+        border-color 0.12s ease;
+}
+
+
+.prompt-send:hover {
+    background: var(--surface-hover);
+
+    border-color: var(--border-light);
+}
+
+
+/* ---------------------------------------------------------
+   Control panel
+--------------------------------------------------------- */
+
+.control-card {
+    align-self: start;
+
+    padding: 18px;
+
+    background: var(--surface);
+
+    border: 1px solid var(--border);
+
+    border-radius: 12px;
+}
+
+
+.control-header {
+    margin-bottom: 18px;
+}
+
+
+.control-title {
+    display: block;
+
+    color: var(--text);
+
+    font-size: 13px;
+    font-weight: 600;
+}
+
+
+.control-description {
+    display: block;
+
+    margin-top: 5px;
+
+    color: var(--text-muted);
+
+    font-size: 11px;
+    line-height: 1.5;
+}
+
+
+.control-buttons {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 9px;
+}
+
+
+.control-btn {
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    gap: 9px;
+
+    width: 100%;
+
+    padding: 11px 14px;
+
+    border: 1px solid var(--border);
+
+    border-radius: 8px;
+
+    background: var(--surface-inset);
+
+    color: var(--text);
+
+    font-family: var(--font-ui);
+
+    font-size: 12.5px;
+    font-weight: 500;
+
+    cursor: pointer;
+
+    transition:
+        color 0.15s ease,
+        background 0.15s ease,
+        border-color 0.15s ease;
+}
+
+
+.control-btn svg {
+    width: 14px;
+    height: 14px;
+
+    flex-shrink: 0;
+}
+
+
+.control-start:hover {
+    color: var(--accent);
+
+    border-color: var(--accent-dim);
+
+    background: rgba(61, 220, 151, 0.06);
+}
+
+
+.control-restart:hover {
+    color: var(--warn);
+
+    border-color: #5a4a1f;
+
+    background: rgba(230, 180, 80, 0.06);
+}
+
+
+.control-stop:hover {
+    color: var(--danger);
+
+    border-color: var(--danger-dim);
+
+    background: rgba(229, 72, 77, 0.06);
+}
+
+
+.control-btn:disabled {
+    opacity: 0.45;
+
+    cursor: not-allowed;
+}
+
+
+/* ---------------------------------------------------------
+   Configuration
+--------------------------------------------------------- */
+
+.configuration-card {
+    margin-top: 20px;
+
+    padding: 22px 24px;
+
+    background: var(--surface);
+
+    border: 1px solid var(--border);
+
+    border-radius: 12px;
+}
+
+
+.configuration-header {
+    display: flex;
+
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 20px;
+}
+
+
+.configuration-title {
+    margin: 0;
+
+    font-size: 14px;
+    font-weight: 600;
+}
+
+
+.configuration-description {
+    margin: 6px 0 0;
+
+    color: var(--text-muted);
+
+    font-size: 11px;
+}
+
+
+.coming-soon {
+    color: var(--text-muted);
+
+    font-family: var(--font-mono);
+
+    font-size: 10.5px;
+
+    white-space: nowrap;
+}
+
+
+/* ---------------------------------------------------------
+   Responsive
+--------------------------------------------------------- */
+
+@media (max-width: 800px) {
+
+    .app-shell {
+        padding: 24px 18px 36px;
+    }
+
+
+    .console-layout {
+        grid-template-columns: 1fr;
+
+        min-height: 0;
+    }
+
+
+    .console-card {
+        min-height: 560px;
+    }
+
+
+    .control-card {
+        order: 2;
+    }
+
+
+    .control-buttons {
+        flex-direction: row;
+    }
+
+
+    .control-btn {
+        flex: 1;
+    }
+
+}
+
+
+@media (max-width: 560px) {
+
+    .app-shell {
+        padding: 18px 12px 28px;
+    }
+
+
+    .app-header {
+        flex-direction: column;
+
+        margin-bottom: 22px;
+    }
+
+
+    .app-header-right {
+        width: 100%;
+
+        justify-content: space-between;
+    }
+
+
+    .app-title {
+        font-size: 23px;
+    }
+
+
+    .resource-stats {
+        grid-template-columns: 1fr;
+
+        gap: 14px;
+
+        padding: 16px;
+    }
+
+
+    .console-card {
+        min-height: 500px;
+    }
+
+
+    .console-toolbar {
+        padding: 13px 15px;
+    }
+
+
+    .terminal-container {
+        padding-left: 10px;
+    }
+
+
+    .prompt-row {
+        padding: 10px;
+    }
+
+
+    .prompt-send {
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+
+
+    .control-buttons {
+        gap: 7px;
+    }
+
+
+    .control-btn {
+        padding: 10px 8px;
+    }
+
+
+    .configuration-card {
+        padding: 18px;
+    }
+
+
+    .configuration-header {
+        align-items: flex-start;
+
+        flex-direction: column;
+
+        gap: 10px;
+    }
+
 }

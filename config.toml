@@ -1,0 +1,11 @@
+
+[server]
+port = 3000
+host = "0.0.0.0"
+apiVer = "1"
+
+[pumpkin]
+bin = "pumpkin"
+
+[playit]
+enabled = false

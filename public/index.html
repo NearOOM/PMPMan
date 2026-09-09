@@ -6,67 +6,259 @@
 
     <title>PMPMan</title>
 
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+        rel="stylesheet"
+    >
+
+    <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+    >
+
     <link rel="stylesheet" href="/css/style.css">
     <link rel="stylesheet" href="/bundles/bundle.css">
 </head>
 
 <body>
 
-    <main class="container">
+<main class="app-shell">
 
-        <header class="header">
-            <div>
-                <h1>PMPMan</h1>
-                <p>Pumpkin Minecraft Server Manager</p>
-            </div>
+    <!-- Header -->
+    <header class="app-header">
 
-            <span id="status" class="status offline">
+        <div class="app-header-left">
+            <h1 class="app-title">PMPMan</h1>
+            <p class="app-subtitle">
+                Pumpkin Minecraft Server Manager
+            </p>
+        </div>
+
+        <div class="app-header-right">
+
+            <span id="status" class="status-pill status-offline">
+                <span class="status-dot"></span>
                 Offline
             </span>
-        </header>
+
+            <span
+                id="connLabel"
+                class="conn-label conn-disconnected"
+            >
+                Disconnected
+            </span>
+
+        </div>
+
+    </header>
 
 
-        <section class="terminal-container">
-            <div id="terminal"></div>
-        </section>
+    <!-- Resource stats -->
+    <section class="resource-stats">
+
+        <div class="stat-block">
+            <div class="stat-row">
+                <span class="stat-label">Server CPU</span>
+                <span class="stat-value" id="cpuValue">—</span>
+            </div>
+
+            <div class="stat-bar">
+                <div
+                    class="stat-bar-fill"
+                    id="cpuBar"
+                ></div>
+            </div>
+        </div>
 
 
-        <section class="controls">
+        <div class="stat-block">
+            <div class="stat-row">
+                <span class="stat-label">System memory</span>
+                <span class="stat-value" id="memValue">—</span>
+            </div>
 
-            <button id="startBtn">
-                Start
-            </button>
-
-            <button id="stopBtn">
-                Stop
-            </button>
-
-            <button id="restartBtn">
-                Restart
-            </button>
-
-        </section>
+            <div class="stat-bar">
+                <div
+                    class="stat-bar-fill"
+                    id="memBar"
+                ></div>
+            </div>
+        </div>
 
 
-        <form id="commandForm" class="command-form">
+        <div class="stat-block">
+            <div class="stat-row">
+                <span class="stat-label">Pumpkin memory</span>
+                <span class="stat-value" id="pumpkinMemValue">—</span>
+            </div>
 
-            <input
-                id="commandInput"
-                type="text"
-                placeholder="Enter Minecraft command..."
-                autocomplete="off"
+            <div class="stat-bar">
+                <div
+                    class="stat-bar-fill"
+                    id="pumpkinMemBar"
+                ></div>
+            </div>
+        </div>
+
+    </section>
+
+
+    <!-- Main console area -->
+    <section class="console-layout">
+
+        <!-- Terminal -->
+        <div class="console-card">
+
+            <div class="console-toolbar">
+                <span class="console-label">
+                    Console
+                </span>
+            </div>
+
+
+            <div class="terminal-container">
+
+                <div id="terminal"></div>
+
+            </div>
+
+
+            <form
+                id="commandForm"
+                class="prompt-row"
             >
 
-            <button type="submit">
-                Send
-            </button>
+                <span class="prompt-glyph">$</span>
 
-        </form>
+                <input
+                    id="commandInput"
+                    type="text"
+                    class="prompt-input"
+                    placeholder="Type a command and press enter..."
+                    autocomplete="off"
+                >
 
-    </main>
+                <button
+                    type="submit"
+                    class="prompt-send"
+                >
+                    Send
+                </button>
+
+            </form>
+
+        </div>
 
 
-    <script src="/bundles/bundle.js"></script>
+        <!-- Server controls -->
+        <aside class="control-card">
+
+            <div class="control-header">
+                <span class="control-title">
+                    Server control
+                </span>
+
+                <span class="control-description">
+                    Manage your server
+                </span>
+            </div>
+
+
+            <div class="control-buttons">
+
+                <button
+                    id="startBtn"
+                    class="control-btn control-start"
+                    type="button"
+                >
+                    <svg
+                        viewBox="0 0 16 16"
+                        fill="currentColor"
+                        aria-hidden="true"
+                    >
+                        <path d="M4 2.5v11l9-5.5-9-5.5z"/>
+                    </svg>
+
+                    <span>Start</span>
+                </button>
+
+
+                <button
+                    id="restartBtn"
+                    class="control-btn control-restart"
+                    type="button"
+                >
+                    <svg
+                        viewBox="0 0 16 16"
+                        fill="currentColor"
+                        aria-hidden="true"
+                    >
+                        <path d="M13.65 2.35a7 7 0 1 0 1.6 7.4h-1.57a5.5 5.5 0 1 1-1.35-5.44L9.5 7h5V2l-1.85 1.85z"/>
+                    </svg>
+
+                    <span>Restart</span>
+                </button>
+
+
+                <button
+                    id="stopBtn"
+                    class="control-btn control-stop"
+                    type="button"
+                >
+                    <svg
+                        viewBox="0 0 16 16"
+                        fill="currentColor"
+                        aria-hidden="true"
+                    >
+                        <rect
+                            x="4"
+                            y="4"
+                            width="8"
+                            height="8"
+                            rx="1"
+                        />
+                    </svg>
+
+                    <span>Stop</span>
+                </button>
+
+            </div>
+
+        </aside>
+
+    </section>
+
+
+    <!-- Configuration -->
+    <section class="configuration-card">
+
+        <div class="configuration-header">
+
+            <div>
+                <h2 class="configuration-title">
+                    Configuration
+                </h2>
+
+                <p class="configuration-description">
+                    Server configuration and advanced settings
+                </p>
+            </div>
+
+            <span class="coming-soon">
+                Coming soon...
+            </span>
+
+        </div>
+
+    </section>
+
+</main>
+
+
+<script src="/bundles/bundle.js"></script>
 
 </body>
 </html>

@@ -45,6 +45,13 @@ format:
 
 Difficult suggestions are not guaranteed to be carried out completely or even not carried out at all
 
+# Screenshots
+1. Ran PMPMan on termux
+![termux](screenshots/termux.jpg)
+2. The manager UI
+![webui](screenshots/webui.jpg)
+
+
 # Contribute
 Feel free to contribute😁..
 and i didn't have any rules on contribute yet so...
