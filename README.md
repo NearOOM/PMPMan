@@ -1,3 +1,5 @@
+![pmpman](images/icon.png)
+
 # Introduction
 PMPMan is a simple Pumpkin Minecraft Server Pterodactyl-like manager
 
@@ -47,9 +49,9 @@ Difficult suggestions are not guaranteed to be carried out completely or even no
 
 # Screenshots
 1. Ran PMPMan on termux
-![termux](screenshots/termux.jpg)
+![termux](images/termux.jpg)
 2. The manager UI
-![webui](screenshots/webui.jpg)
+![webui](images/webui.jpg)
 
 
 # Contribute
