@@ -3,6 +3,7 @@ import { FitAddon } from "@xterm/addon-fit";
 import "@xterm/xterm/css/xterm.css";
 
 const terminalElement = document.getElementById("terminal");
+const terminalContainer = document.querySelector(".terminal-container");
 const statusElement = document.getElementById("status");
 const connLabelElement = document.getElementById("connLabel");
 const startBtn = document.getElementById("startBtn");
@@ -17,7 +18,6 @@ const term = new Terminal({
     fontFamily: "'JetBrains Mono', 'SFMono-Regular', Consolas, monospace",
     convertEol: true,
     scrollback: 5000,
-    scrollOnOutput: false,
     theme: {
         background: "#000000",
         foreground: "#dde1e6",
@@ -29,33 +29,23 @@ const fitAddon = new FitAddon();
 term.loadAddon(fitAddon);
 term.open(terminalElement);
 
-const terminalViewport = terminalElement.querySelector(".xterm-viewport");
-if (terminalViewport) {
-    terminalViewport.addEventListener("touchstart", event => {
-        event.stopPropagation();
-    }, { passive: true });
-
-    terminalViewport.addEventListener("touchmove", event => {
-        event.stopPropagation();
-    }, { passive: true });
-
-    terminalViewport.addEventListener("wheel", event => {
-        event.stopPropagation();
-    }, { passive: true });
+function safeFit() {
+    try {
+        fitAddon.fit();
+    } catch (error) {
+        console.error("[Terminal] Failed to fit:", error);
+    }
 }
 
-fitAddon.fit();
+requestAnimationFrame(() => requestAnimationFrame(safeFit));
+if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(safeFit);
+}
 
 let resizeTimeout = null;
 function resizeTerminal() {
     clearTimeout(resizeTimeout);
-    resizeTimeout = setTimeout(() => {
-        try {
-            fitAddon.fit();
-        } catch (error) {
-            console.error("[Terminal] Failed to resize:", error);
-        }
-    }, 50);
+    resizeTimeout = setTimeout(safeFit, 50);
 }
 
 window.addEventListener("resize", resizeTerminal);
@@ -66,6 +56,63 @@ if (typeof ResizeObserver !== "undefined") {
     });
     terminalObserver.observe(terminalElement);
 }
+
+let touchLastY = null;
+let touchAccumPx = 0;
+
+function rowHeightPx() {
+    return term.rows > 0 ? terminalContainer.clientHeight / term.rows : 16;
+}
+
+terminalContainer.addEventListener("touchstart", event => {
+    if (event.touches.length !== 1) return;
+    touchLastY = event.touches[0].clientY;
+    touchAccumPx = 0;
+}, { passive: true });
+
+terminalContainer.addEventListener("touchmove", event => {
+    if (touchLastY === null || event.touches.length !== 1) return;
+
+    const currentY = event.touches[0].clientY;
+    const deltaY = touchLastY - currentY;
+    touchLastY = currentY;
+    touchAccumPx += deltaY;
+
+    const rowPx = rowHeightPx();
+    if (Math.abs(touchAccumPx) >= rowPx) {
+        const lines = Math.trunc(touchAccumPx / rowPx);
+        term.scrollLines(lines);
+        touchAccumPx -= lines * rowPx;
+    }
+
+    event.preventDefault();
+}, { passive: false });
+
+function endTouch() {
+    touchLastY = null;
+    touchAccumPx = 0;
+}
+terminalContainer.addEventListener("touchend", endTouch, { passive: true });
+terminalContainer.addEventListener("touchcancel", endTouch, { passive: true });
+
+let userScrolledUp = false;
+
+const scrollToBottomBtn = document.createElement("button");
+scrollToBottomBtn.type = "button";
+scrollToBottomBtn.className = "scroll-bottom-btn";
+scrollToBottomBtn.textContent = "↓";
+scrollToBottomBtn.style.display = "none";
+terminalContainer.appendChild(scrollToBottomBtn);
+
+scrollToBottomBtn.addEventListener("click", () => {
+    term.scrollToBottom();
+});
+
+term.onScroll(() => {
+    const buffer = term.buffer.active;
+    userScrolledUp = buffer.viewportY < buffer.baseY;
+    scrollToBottomBtn.style.display = userScrolledUp ? "block" : "none";
+});
 
 term.writeln("\x1b[32m[PMPMan] ANSI color support: OK\x1b[0m");
 
@@ -106,7 +153,6 @@ function connectWebSocket() {
             case "output":
                 if (typeof msg.data === "string") {
                     term.write(msg.data);
-                    term.scrollToBottom();
                 }
                 break;
             case "stats":
@@ -211,7 +257,6 @@ startBtn.addEventListener("click", async () => {
         if (res.success) setStatus(true);
     } catch (error) {
         term.writeln(`\r\n[PMPMan] ${error.message}`);
-        term.scrollToBottom();
     }
 });
 
@@ -221,7 +266,6 @@ stopBtn.addEventListener("click", async () => {
         setStatus(false);
     } catch (error) {
         term.writeln(`\r\n[PMPMan] ${error.message}`);
-        term.scrollToBottom();
     }
 });
 
@@ -232,7 +276,6 @@ restartBtn.addEventListener("click", async () => {
         setStatus(true);
     } catch (error) {
         term.writeln(`\r\n[PMPMan] ${error.message}`);
-        term.scrollToBottom();
     }
 });
 
@@ -250,7 +293,6 @@ commandForm.addEventListener("submit", async (event) => {
     }
 
     term.writeln(`\r\n\x1b[38;2;61;220;151m$\x1b[0m ${input}`);
-    term.scrollToBottom();
     commandInput.value = "";
     commandInput.focus();
 
@@ -258,6 +300,5 @@ commandForm.addEventListener("submit", async (event) => {
         await sendCommand("command", input);
     } catch (error) {
         term.writeln(`\r\n[PMPMan] ${error.message}`);
-        term.scrollToBottom();
     }
 });

@@ -14,7 +14,7 @@ const playit = require("./lib/playit")
 const { monitor } = require('./lib/monitor');
 
 // DO NOT CHANGE
-const logBuffer = [];
+let logBuffer = [];
 const MAX_BUFFER_LINES = 1000;
 
 
