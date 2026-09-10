@@ -97,7 +97,7 @@ enabled = false
 EOF
 }
 
-echo "[+] Installing nodejs..."
+echo "[+] Installing nodejs...",
 if [[ "$OS" == "android" ]]; then
     pkg install nodejs -y > /dev/null 2>&1
 else
