@@ -6,79 +6,17 @@ const path = require("path");
 const { spawn } = require("child_process");
 const WebSocket = require("ws");
 const http = require("http");
-const fs = require("fs");
-const TOML = require("smol-toml");
 
 // Builtin libs
 const playit = require("./lib/playit")
 const { monitor } = require('./lib/monitor');
+const { loadConfig, updateConfig, CONFIG_PATH } = require("./lib/config");
 
 // DO NOT CHANGE
 let logBuffer = [];
 const MAX_BUFFER_LINES = 1000;
 
-
-// Config Processing
-function createConf(name, content) {
-  try {
-    fs.writeFileSync(name, content, 'utf8');
-  } catch (error) {
-      console.log(error);
-  }
-}
-
-const CONFIG_PATH = path.join(__dirname, "config.toml");
-
-const DEFAULT_CONFIG = {
-    server: {
-        port: 3000,
-        host: "0.0.0.0",
-        apiVer: "1"
-    },
-    pumpkin: {
-        bin: "pumpkin"
-    },
-    playit: {
-        enabled: false
-    }
-};
-
-const DEFCONF_TOML = `
-[server]
-port = 3000
-host = "0.0.0.0"
-apiVer = "1"
-
-[pumpkin]
-bin = "pumpkin"
-
-[playit]
-enabled = false
-`
-
-function loadConfig() {
-    if (!fs.existsSync(CONFIG_PATH)) {
-        console.warn(`[!] config.toml not found at ${CONFIG_PATH}, using defaults.`);
-        createConf(CONFIG_PATH, DEFCONF_TOML);
-        return DEFAULT_CONFIG;
-    }
-
-    try {
-        const raw = fs.readFileSync(CONFIG_PATH, "utf-8");
-        const parsed = TOML.parse(raw);
-
-        return {
-            server: { ...DEFAULT_CONFIG.server, ...(parsed.server || {}) },
-            pumpkin: { ...DEFAULT_CONFIG.pumpkin, ...(parsed.pumpkin || {}) },
-            playit: { ...DEFAULT_CONFIG.playit, ...(parsed.playit || {}) }
-        };
-    } catch (err) {
-        console.error(`[-] Failed to parse config.toml: ${err.message}`);
-        console.warn("[!] Falling back to default config.");
-        return DEFAULT_CONFIG;
-    }
-}
-
+// Config
 const config = loadConfig();
 
 const port = config.server.port;
@@ -166,82 +104,14 @@ function attachServerListeners() {
     });
 
     server.on("close", (code, signal) => {
+        server = null; 
         const exitText = `[PMPMan] Pumpkin exited: code=${code}, signal=${signal}\r\n`;
         
         logBuffer.push(exitText);
         if (logBuffer.length > MAX_BUFFER_LINES) logBuffer.shift();
 
         broadcastOutput(exitText);
-        server = null;
     });
-}
-
-
-// Server Commands
-function start() {
-    if (server) {
-        return false;
-    }
-
-    server = spawn(`./${pumpkinBin}`, [], {
-        cwd: path.join(__dirname, "pumpkin_data"),
-        stdio: ["pipe", "pipe", "pipe"],
-        env: {
-            ...process.env,
-            CLICOLOR_FORCE: "1",
-            FORCE_COLOR: "1",
-            TERM: "xterm-256color"
-        }
-    });
-
-    attachServerListeners();
-    return true;
-}
-
-function stop() {
-    if (!server) {
-        return false;
-    }
-
-    let killTimeout = setTimeout(() => {
-        if (server) {
-            console.warn("[PMPMan] Pumpkin did not stop gracefully. Forcing kill...");
-            server.kill("SIGKILL");
-        }
-    }, 5000);
-
-    server.once("close", () => {
-        clearTimeout(killTimeout);
-    });
-
-    server.stdin.write("stop\n");
-    return true;
-}
-
-function restart() {
-    if (!server) {
-        logBuffer = [];
-        start();
-        return true;
-    }
-
-    let killTimeout = setTimeout(() => {
-        if (server) {
-            console.warn("[PMPMan] Pumpkin did not stop gracefully during restart. Forcing kill...");
-            server.kill("SIGKILL");
-        }
-    }, 5000);
-
-    server.once("close", () => {
-        clearTimeout(killTimeout);
-        logBuffer = [];
-        setTimeout(() => {
-            start();
-        }, 100);
-    });
-
-    server.stdin.write("stop\n");
-    return true;
 }
 
 
@@ -293,12 +163,123 @@ function getServerStatus() {
     return false
 };
 
+// Server Commands
+function start() {
+    if (server) {
+        return false;
+    }
+
+    server = spawn(`./${pumpkinBin}`, [], {
+        cwd: path.join(__dirname, "pumpkin_data"),
+        stdio: ["pipe", "pipe", "pipe"],
+        env: {
+            ...process.env,
+            CLICOLOR_FORCE: "1",
+            FORCE_COLOR: "1",
+            TERM: "xterm-256color"
+        }
+    });
+    
+    server.on("error", (error) => {
+        const errorText = `[PMPMan] Failed to start Pumpkin: ${error.message}\r\n`;
+    
+        logBuffer.push(errorText);
+        if (logBuffer.length > MAX_BUFFER_LINES) {
+            logBuffer.shift();
+        }
+    
+        broadcastOutput(errorText);
+    
+        server = null;
+    });
+    
+    attachServerListeners();
+    return true;
+}
+
+function stop() {
+    if (!server) {
+        return false;
+    }
+
+    let killTimeout = setTimeout(() => {
+        if (server) {
+            console.warn("[PMPMan] Pumpkin did not stop gracefully. Forcing kill...");
+            server.kill("SIGKILL");
+        }
+    }, 5000);
+
+    server.once("close", () => {
+        clearTimeout(killTimeout);
+    });
+
+    server.stdin.write("stop\n");
+    return true;
+}
+
+function restart() {
+    if (!server) {
+        logBuffer = [];
+        start();
+        return true;
+    }
+
+    let killTimeout = setTimeout(() => {
+        if (server) {
+            console.warn("[PMPMan] Pumpkin did not stop gracefully during restart. Forcing kill...");
+            server.kill("SIGKILL");
+        }
+    }, 5000);
+
+    server.once("close", () => {
+        clearTimeout(killTimeout);
+        logBuffer = [];
+        setTimeout(() => {
+            start();
+        }, 100);
+    });
+
+    server.stdin.write("stop\n");
+    return true;
+}
+
 // Routes
+app.get(`/v${apiVer}/getconfig`, (req, res) => {
+    return res.status(200).json({
+        success: true,
+        config
+    });
+});
+
 app.get(`/v${apiVer}/status`, (req, res) => {
     const serverStatus = getServerStatus();
     return res.status(200).json({
         "online": serverStatus
     });
+});
+
+app.post(`/v${apiVer}/configedit`, (req, res) => {
+    if (req.body?.edit !== true) {
+        return res.status(400).json({
+            success: false,
+            error: "Missing edit flag"
+        });
+    }
+
+    try {
+        const updatedConfig = updateConfig(req.body.config);
+
+        return res.status(200).json({
+            success: true,
+            config: updatedConfig,
+            restartRequired: true
+        });
+    } catch (error) {
+        return res.status(400).json({
+            success: false,
+            error: error.message
+        });
+    }
 });
 
 app.post(`/v${apiVer}/sendCommand`, (req, res) => {

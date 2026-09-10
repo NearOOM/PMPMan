@@ -736,14 +736,153 @@ body {
 }
 
 
-.coming-soon {
+.configuration-form {
+    margin-top: 24px;
+}
+
+.config-section {
+    padding: 18px 0;
+    border-top: 1px solid var(--border);
+}
+
+.config-section:first-child {
+    padding-top: 0;
+    border-top: 0;
+}
+
+.config-section-title {
+    margin-bottom: 14px;
+    color: var(--text);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.config-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.config-field {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.config-field > span {
     color: var(--text-muted);
+    font-size: 11px;
+    font-weight: 500;
+}
 
+.config-field input {
+    width: 100%;
+    padding: 9px 11px;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    outline: none;
+    background: var(--surface-inset);
+    color: var(--text);
     font-family: var(--font-mono);
+    font-size: 12px;
+    transition:
+        border-color 0.15s ease,
+        background 0.15s ease;
+}
 
+.config-field input:focus {
+    border-color: var(--border-light);
+    background: var(--surface);
+}
+
+.config-toggle {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+}
+
+.config-toggle input {
+    width: 17px;
+    height: 17px;
+    accent-color: var(--accent);
+}
+
+.config-toggle-text {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.config-toggle-text strong {
+    color: var(--text);
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.config-toggle-text small {
+    color: var(--text-muted);
     font-size: 10.5px;
+}
 
-    white-space: nowrap;
+.configuration-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    padding-top: 18px;
+    border-top: 1px solid var(--border);
+}
+
+.configuration-notice {
+    color: var(--text-muted);
+    font-size: 11px;
+}
+
+.config-save-btn {
+    padding: 9px 14px;
+    border: 1px solid var(--accent-dim);
+    border-radius: 7px;
+    background: rgba(61, 220, 151, 0.07);
+    color: var(--accent);
+    font-family: var(--font-ui);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition:
+        background 0.15s ease,
+        border-color 0.15s ease;
+}
+
+.config-save-btn:hover {
+    background: rgba(61, 220, 151, 0.12);
+    border-color: var(--accent);
+}
+
+.config-save-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.configuration-status {
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+}
+
+@media (max-width: 700px) {
+    .config-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .configuration-actions {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .config-save-btn {
+        width: 100%;
+    }
 }
 
 
