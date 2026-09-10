@@ -63,3 +63,7 @@ bundles/
 
 # Playit
 playit/
+
+# config file
+config.toml
+config.*
