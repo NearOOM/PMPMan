@@ -1,4 +1,6 @@
 ![pmpman](images/icon.png)
+<h1 align="center">PMPMan</h1>
+
 
 # Introduction
 PMPMan is a simple Pumpkin Minecraft Server Pterodactyl-like manager
@@ -8,7 +10,7 @@ This Project is focused on Pumpkin Server only and did not guarantee it runs nor
 Pumpkin Repository:
 https://github.com/Pumpkin-MC/Pumpkin
 
-### NOTE: This Project is still on heavy development and still contains bug.
+### NOTE: This Project is still on development and still contains bug.
 
 # How To Use
 1. Clone this repository:
@@ -60,7 +62,3 @@ and i didn't have any rules on contribute yet so...
 
 # License
 GPLv3
-
-
-### apology
- Sorry for bad README writing cuz im new on github and im trying my best😅..
