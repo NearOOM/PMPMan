@@ -10,7 +10,8 @@ const http = require("http");
 // Builtin libs
 const playit = require("./lib/playit")
 const { monitor } = require('./lib/monitor');
-const { loadConfig, updateConfig, CONFIG_PATH } = require("./lib/config");
+const { loadConfig } = require("./lib/config");
+const auth = require("./lib/auth");
 
 // DO NOT CHANGE
 let logBuffer = [];
@@ -21,9 +22,11 @@ const config = loadConfig();
 
 const port = config.server.port;
 const host = config.server.host;
-const apiVer = config.server.apiVer;
 const pumpkinBin = config.pumpkin.bin;
 const isPlayit = config.playit.enabled;
+
+// Auth Setup
+auth.ensureUser();
 
 // Server Config
 const app = express();
@@ -46,7 +49,12 @@ setInterval(() => {
     });
 }, 30000);
 
-function handleConnection(ws) {
+function handleConnection(ws, req) {
+    if (!auth.isAuthenticated(req)) {
+        ws.close(4401, "Unauthorized");
+        return;
+    }
+
     ws.send(JSON.stringify({
         type: "output",
         data: "[PMPMan] Connected to log stream\r\n"
@@ -244,45 +252,47 @@ function restart() {
 }
 
 // Routes
-app.get(`/v${apiVer}/getconfig`, (req, res) => {
-    return res.status(200).json({
-        success: true,
-        config
+app.post("/api/login", (req, res) => {
+    const { username, password } = req.body;
+
+    if (!auth.verifyLogin(username, password)) {
+        return res.status(401).json({
+            success: false,
+            error: "Invalid username or password"
+        });
+    }
+
+    const token = auth.createSession(username);
+
+    res.cookie(auth.SESSION_COOKIE_NAME, token, {
+        httpOnly: true,
+        sameSite: "strict",
+        secure: req.secure,
+        maxAge: 24 * 60 * 60 * 1000
     });
+
+    return retOk(res);
 });
 
-app.get(`/v${apiVer}/status`, (req, res) => {
+app.post("/api/logout", (req, res) => {
+    const token = auth.getCookie(req, auth.SESSION_COOKIE_NAME);
+    auth.destroySession(token);
+    res.clearCookie(auth.SESSION_COOKIE_NAME);
+    return retOk(res);
+});
+
+app.get("/api/session", auth.requireAuth, (req, res) => {
+    return res.status(200).json({ authenticated: true });
+});
+
+app.get("/api/status", auth.requireAuth, (req, res) => {
     const serverStatus = getServerStatus();
     return res.status(200).json({
         "online": serverStatus
     });
 });
 
-app.post(`/v${apiVer}/configedit`, (req, res) => {
-    if (req.body?.edit !== true) {
-        return res.status(400).json({
-            success: false,
-            error: "Missing edit flag"
-        });
-    }
-
-    try {
-        const updatedConfig = updateConfig(req.body.config);
-
-        return res.status(200).json({
-            success: true,
-            config: updatedConfig,
-            restartRequired: true
-        });
-    } catch (error) {
-        return res.status(400).json({
-            success: false,
-            error: error.message
-        });
-    }
-});
-
-app.post(`/v${apiVer}/sendCommand`, (req, res) => {
+app.post("/api/sendCommand", auth.requireAuth, (req, res) => {
     const command = req.body.command;
 
     if (!command) {
@@ -336,6 +346,8 @@ httpServer.listen(port, host, () => {
     console.log(`PMPMan is running on ${host}:${port}`);
     start();
     if (isPlayit) {
+        console.warn("[PMPMan] Playit tunnel enabled. Only tunnel Pumpkin's game port in your playit dashboard - do NOT tunnel PMPMan's own port, or the manager becomes reachable by anyone with the tunnel URL.");
+
         const playitEvents = playit.start();
 
         playitEvents.on("claim", url => {

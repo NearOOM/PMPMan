@@ -2,6 +2,86 @@ import { Terminal } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
 import "@xterm/xterm/css/xterm.css";
 
+const loginOverlay = document.getElementById("loginOverlay");
+const loginForm = document.getElementById("loginForm");
+const loginUsername = document.getElementById("loginUsername");
+const loginPassword = document.getElementById("loginPassword");
+const loginError = document.getElementById("loginError");
+const appShell = document.getElementById("appShell");
+const logoutBtn = document.getElementById("logoutBtn");
+
+let appInitialized = false;
+
+function showLogin(message) {
+    appShell.classList.add("hidden");
+    loginOverlay.classList.remove("hidden");
+    loginError.textContent = message || "";
+}
+
+function showApp() {
+    loginOverlay.classList.add("hidden");
+    appShell.classList.remove("hidden");
+
+    if (!appInitialized) {
+        appInitialized = true;
+        initApp();
+    }
+}
+
+async function checkSession() {
+    try {
+        const response = await fetch("/api/session");
+        if (response.ok) {
+            showApp();
+        } else {
+            showLogin();
+        }
+    } catch (error) {
+        showLogin();
+    }
+}
+
+loginForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    try {
+        const response = await fetch("/api/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                username: loginUsername.value,
+                password: loginPassword.value
+            })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            loginError.textContent = data.error || "Login failed";
+            return;
+        }
+
+        loginPassword.value = "";
+        showApp();
+    } catch (error) {
+        loginError.textContent = "Login failed";
+    }
+});
+
+logoutBtn.addEventListener("click", async () => {
+    try {
+        await fetch("/api/logout", { method: "POST" });
+    } catch (error) {
+        // ignore
+    }
+    showLogin();
+});
+
+checkSession();
+
+// Everything below only runs once the user is authenticated.
+function initApp() {
+
 const terminalElement = document.getElementById("terminal");
 const terminalContainer = document.querySelector(".terminal-container");
 const statusElement = document.getElementById("status");
@@ -11,15 +91,6 @@ const stopBtn = document.getElementById("stopBtn");
 const restartBtn = document.getElementById("restartBtn");
 const commandForm = document.getElementById("commandForm");
 const commandInput = document.getElementById("commandInput");
-const configStatusElement = document.getElementById("configStatus");
-const configNoticeElement = document.getElementById("configNotice");
-const configSaveBtn = document.getElementById("configSaveBtn");
-
-const configHostInput = document.getElementById("configHost");
-const configPortInput = document.getElementById("configPort");
-const configApiVerInput = document.getElementById("configApiVer");
-const configPumpkinBinInput = document.getElementById("configPumpkinBin");
-const configPlayitInput = document.getElementById("configPlayit");
 
 const term = new Terminal({
     cursorBlink: true,
@@ -180,6 +251,12 @@ function connectWebSocket() {
 
     ws.onclose = (event) => {
         setConnLabel(false);
+
+        if (event.code === 4401) {
+            showLogin("Session expired, please sign in again.");
+            return;
+        }
+
         term.writeln(`\r\n[PMPMan] WebSocket disconnected (${event.code}). Reconnecting...`);
         if (!reconnectTimeout) {
             reconnectTimeout = setTimeout(() => {
@@ -241,11 +318,16 @@ async function sendCommand(command, input = null) {
     const body = { command: command };
     if (input !== null) body.input = input;
 
-    const response = await fetch("/v1/sendCommand", {
+    const response = await fetch("/api/sendCommand", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body)
     });
+
+    if (response.status === 401) {
+        showLogin("Session expired, please sign in again.");
+        throw new Error("Unauthorized");
+    }
 
     let data;
     try {
@@ -259,150 +341,18 @@ async function sendCommand(command, input = null) {
     }
     return data;
 }
-// Configuration
-async function getConfig() {
-    const response = await fetch("/v1/getconfig");
-
-    let data;
-
-    try {
-        data = await response.json();
-    } catch {
-        throw new Error("Invalid server response");
-    }
-
-    if (!response.ok) {
-        throw new Error(data.error || "Failed to load configuration");
-    }
-
-    return data.config;
-}
-
-async function saveConfig(config) {
-    const response = await fetch("/v1/configedit", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            edit: true,
-            config
-        })
-    });
-
-    let data;
-
-    try {
-        data = await response.json();
-    } catch {
-        throw new Error("Invalid server response");
-    }
-
-    if (!response.ok) {
-        throw new Error(data.error || "Failed to save configuration");
-    }
-
-    return data;
-}
-
-function setConfigStatus(text) {
-    configStatusElement.textContent = text;
-}
-
-function setConfigNotice(text) {
-    configNoticeElement.textContent = text;
-}
-
-async function loadConfigUI() {
-    try {
-        setConfigStatus("Loading...");
-
-        const config = await getConfig();
-
-        configHostInput.value = config.server?.host || "0.0.0.0";
-        configPortInput.value = config.server?.port || 3000;
-        configApiVerInput.value = config.server?.apiVer || "1";
-
-        configPumpkinBinInput.value =
-            config.pumpkin?.bin || "pumpkin";
-
-        configPlayitInput.checked =
-            config.playit?.enabled === true;
-
-        setConfigStatus("Loaded");
-    } catch (error) {
-        setConfigStatus("Failed");
-        setConfigNotice(error.message);
-    }
-}
-
-configSaveBtn.addEventListener("click", async () => {
-    const port = Number(configPortInput.value);
-
-    if (
-        !Number.isInteger(port) ||
-        port < 1 ||
-        port > 65535
-    ) {
-        setConfigNotice("Port must be between 1 and 65535.");
-        return;
-    }
-
-    const config = {
-        server: {
-            host: configHostInput.value.trim(),
-            port,
-            apiVer: configApiVerInput.value.trim() || "1"
-        },
-        pumpkin: {
-            bin: configPumpkinBinInput.value.trim()
-        },
-        playit: {
-            enabled: configPlayitInput.checked
-        }
-    };
-
-    if (!config.server.host) {
-        setConfigNotice("Host cannot be empty.");
-        return;
-    }
-
-    if (!config.pumpkin.bin) {
-        setConfigNotice("Pumpkin binary cannot be empty.");
-        return;
-    }
-
-    configSaveBtn.disabled = true;
-    setConfigStatus("Saving...");
-    setConfigNotice("");
-
-    try {
-        await saveConfig(config);
-
-        setConfigStatus("Saved");
-        setConfigNotice(
-            "Configuration saved. Restart PMPMan to apply server changes."
-        );
-
-        term.writeln(
-            "\r\n[PMPMan] Configuration saved."
-        );
-    } catch (error) {
-        setConfigStatus("Failed");
-        setConfigNotice(error.message);
-    } finally {
-        configSaveBtn.disabled = false;
-    }
-});
-
-loadConfigUI();
 
 // STATUS
 async function getStatus() {
-    const response = await fetch("/v1/status", {
+    const response = await fetch("/api/status", {
         method: "GET",
         headers: { "Content-Type": "application/json" },
     });
+
+    if (response.status === 401) {
+        showLogin("Session expired, please sign in again.");
+        throw new Error("Unauthorized");
+    }
 
     let data;
     try {
@@ -494,7 +444,6 @@ commandForm.addEventListener("submit", async (event) => {
         term.clear();
         commandInput.value = "";
         commandInput.focus();
-        await sendCommand("command", "clear");
         return;
     }
 
@@ -508,3 +457,5 @@ commandForm.addEventListener("submit", async (event) => {
         term.writeln(`\r\n[PMPMan] ${error.message}`);
     }
 });
+
+}

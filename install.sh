@@ -86,12 +86,14 @@ generate_config() {
     cat > "${CONFIG_FILE}" <<EOF
 [server]
 port = 3000
-host = "0.0.0.0"
-apiVer = "1"
+host = "127.0.0.1"
 
 [pumpkin]
 bin = "pumpkin"
 
+# WARNING: if you enable playit below, only tunnel Pumpkin's game port
+# in your playit dashboard. Do NOT tunnel this manager's port, or
+# anyone with the tunnel URL gets access to it too.
 [playit]
 enabled = false
 EOF

@@ -66,3 +66,6 @@ playit/
 
 # config file
 config.toml
+
+# Auth data (contains password hash)
+data/
